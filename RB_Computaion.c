@@ -30,7 +30,7 @@ int main(int argc , char **argv)
     {
          Move_Red(grid,raw);
          Move_Blue(grid,raw);
-         //Grid_Disp(grid,npt,not);
+         Grid_Disp(grid,npt,not);
     }
     Grid_Disp(grid,npt,not);
     return 0;
@@ -96,7 +96,8 @@ void Grid_Disp(char *grid, unsigned int npt, unsigned int not)
                 printf("-");
         }    
         printf("\n");            
-    }    
+    }
+    printf("\n\n");    
 }
 
 
