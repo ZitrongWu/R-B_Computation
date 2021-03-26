@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 char* Grid_Init(int n);
 void Grid_Disp(char *grid, unsigned int npt, unsigned int not);
@@ -41,7 +42,7 @@ char* Grid_Init(int n)
     unsigned int i;
     unsigned int r;
     grid = (char *)malloc(n);
-    //srand();
+    srand(time(0));
     for (i = 0; i != n; i++)
     {
         r = rand()%100;
