@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+//#include <mpi.h>
 
 char* Grid_Init(int n);
 void Grid_Disp(char *grid, unsigned int npt, unsigned int not);
@@ -14,15 +15,26 @@ int main(int argc , char **argv)
 {
     char *grid;
 
-    unsigned int npt = 3;
-    unsigned int not = 3;
+    unsigned int npt;
+    unsigned int not;
+    float c=5;
+    unsigned int raw;
+    unsigned int bot;
+    unsigned int gsz;
+    unsigned int ths;
 
-    unsigned int raw = npt * not;
-    unsigned int bot = npt * npt;
-    unsigned int gsz = (unsigned int)pow(raw,2);
-    float c = 1;
-    
-    unsigned int ths = npt * npt * c;
+    printf("number of raws per taill:");
+    scanf("%d",&npt);
+    printf("number of taills:");
+    scanf("%d",&not);
+    printf("threshold(c):");
+    scanf("%f",&c);
+    printf("\r\n npt=%d,not=%d,c=%f\r\n",npt,not,c);
+
+    raw = npt * not;
+    bot = npt * npt;
+    gsz = (unsigned int)pow(raw,2);
+    ths = npt * npt * c;
 
     grid = Grid_Init(gsz);
     Grid_Disp(grid,npt,not);
@@ -61,9 +73,10 @@ void Grid_Disp(char *grid, unsigned int npt, unsigned int not)
     unsigned int i, j;
     unsigned int raw = npt*not;
     char sep;
-    for (i=0;i!=raw*4+2;i++)
+    printf("\r\n");
+    for (i=0;i!=raw*4+1;i++)
         printf("=");
-    printf("\n");
+    printf("\r\n");
     for (i=0;i!=raw;i++)
     {
         printf("|");
@@ -84,20 +97,20 @@ void Grid_Disp(char *grid, unsigned int npt, unsigned int not)
                     printf("    ");
             }
         }
-        printf("\n");  
+        printf("\r\n");  
         if((i+1)%not == 0)
         {
-            for (j=0;j!=raw*4+2;j++)
+            for (j=0;j!=raw*4+1;j++)
                 printf("=");
         }
         else
         {
-            for (j=0;j!=raw*4+2;j++)
+            for (j=0;j!=raw*4+1;j++)
                 printf("-");
         }    
-        printf("\n");            
+        printf("\r\n");            
     }
-    printf("\n\n");    
+    printf("\r\n");    
 }
 
 
