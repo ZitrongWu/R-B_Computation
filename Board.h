@@ -11,13 +11,16 @@ typedef struct
 {
     unsigned int npt;   //number of rows per tile
     unsigned int not;   //number of tiles in one dimension
-    //unsigned int c;     //terminate condition in percent
+    unsigned int c;     //terminate condition in percent
     unsigned int ths;   //terminal threshold in number
     unsigned int row;   //number of rows 
     unsigned int cpt;   //number of cells per tile
     unsigned int bsz;   //board size (number of cells in the board}
-    char *grid;         //pointer to the satrt address of the board
     unsigned int tert[2];  //the rank of tile meet the terminal condition (x,y)
+    char terc;
+    unsigned int counter; //interactions conter
+    unsigned int maxa; //maximum number of interactions
+    char *grid;         //pointer to the satrt address of the board   
 }Board_Type;
 
 void Grid_Init(Board_Type *board);

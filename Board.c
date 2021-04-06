@@ -22,15 +22,18 @@ void Grid_Disp(Board_Type *board, char ifter)
 {  
     unsigned int i, j, ishtt, isvtt;
     char *addr;//address of begin of rows
-    board->tert[0]=3;
-    board->tert[1]=4;
     char vsep='|', hsep='=';
     printf("\r\n");
-    for (i=0;i!=board->row*4+1;i++)
-    {
-        hsep = vsep = board->tert[0]==0 && i/board->npt==board->tert[1] ?'%':'=';
-        printf("%c",hsep);
-    }
+    if(board->tert[1]==0 && ifter)
+        for (i=0;i!=board->row;i++)
+        {
+            hsep = i/board->npt==board->tert[0] ?'%':'=';
+            printf("%c%c%c%c",hsep,hsep,hsep,hsep);
+        }
+    else
+        for (i=0;i!=board->row;i++)
+            printf("====");
+
     printf("\r\n");
     for (i=0;i!=board->row;i++) //vertical loop
     {
@@ -39,7 +42,7 @@ void Grid_Disp(Board_Type *board, char ifter)
 
         addr = board->grid + i * board->row;
 
-        vsep = board->tert[0]==0 && isvtt ?'%':'|';
+        vsep =ifter && board->tert[0]==0 && isvtt ?'%':'|';
         printf("%c",vsep);
         for (j=0;j!=board->row;j++)//horizontal loop
         {
@@ -126,10 +129,18 @@ char Is_sotp(Board_Type *board)
                         bcount++;
                 }
             }
-           if(  rcout >= board->ths || bcount >= board->ths)
+           if(  rcout >= board->ths )
            {
                board->tert[0] = i;
                board->tert[1] = j;
+               board->terc = 'R';
+               return 1;
+           }
+           if(bcount >= board->ths)
+           {
+                              board->tert[0] = i;
+               board->tert[1] = j;
+               board->terc = 'B';
                return 1;
            }
     
