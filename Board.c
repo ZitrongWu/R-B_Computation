@@ -20,9 +20,9 @@ void Grid_Init(Board_Type *board)
 
 void Grid_Disp(Board_Type *board, char ifter)
 {  
-    unsigned int i, j;
-    board->tert[0]=1;
-    board->tert[1]=2;
+    unsigned int i, j, ishtt, isvtt;
+    board->tert[0]=3;
+    board->tert[1]=4;
     char vsep='|', hsep='=';
     printf("\r\n");
     for (i=0;i!=board->row*4+1;i++)
@@ -33,22 +33,27 @@ void Grid_Disp(Board_Type *board, char ifter)
     printf("\r\n");
     for (i=0;i!=board->row;i++) //vertical loop
     {
-        vsep = board->tert[0]==0 && i/board->npt==board->tert[1] ?'%':'|';
+        isvtt = i/board->npt==board->tert[1];
+        ishtt = (i+1)/board->npt==board->tert[1]||(i+1)/board->npt==board->tert[1]+1;        
+
+        vsep = board->tert[0]==0 && isvtt ?'%':'|';
         printf("%c",vsep);
         for (j=0;j!=board->row;j++)//horizontal loop
         {
             if((j+1) % board->npt == 0)//check if we are on the edg of a tile 
-                vsep =ifter == 1 && i/board->npt==board->tert[1] && ((j+1)/board->npt==board->tert[0]||(j+1)/board->npt==board->tert[0]+1) ? '%':'|' ;
+                vsep =ifter == 1 && isvtt && ((j+1)/board->npt==board->tert[0]||(j+1)/board->npt==board->tert[0]+1) ? '%':'|' ;
             else
                 vsep = ' ';
             printf(" %c %c", *(board->grid + i * board->row + j) == 'W' ? ' ' : *(board->grid+i*board->row+j),vsep);
         }
-        printf("\r\n");  
+        printf("\r\n");
+
 
         for (j=0;j!=board->row;j++)//print the horizontal eage of grid
         {
+            
             if((i+1) % board->npt == 0)//check if we are on the edg of a tile  
-                hsep =ifter == 1 && j/board->npt==board->tert[0] && ((i+1)/board->npt==board->tert[1]||(i+1)/board->npt==board->tert[1]+1) ? '%':'=' ;
+                hsep =ifter == 1 && j/board->npt==board->tert[0] && ishtt ? '%':'=' ;
             else    
                 hsep = '-';
             printf("%c%c%c%c",hsep,hsep,hsep,hsep);
