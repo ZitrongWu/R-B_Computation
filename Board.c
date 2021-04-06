@@ -20,7 +20,8 @@ void Grid_Init(Board_Type *board)
 
 void Grid_Disp(Board_Type *board, char ifter)
 {  
-    unsigned int i, j, ishtt, isvtt, addr;
+    unsigned int i, j, ishtt, isvtt;
+    char *addr;//address of begin of rows
     board->tert[0]=3;
     board->tert[1]=4;
     char vsep='|', hsep='=';
@@ -36,7 +37,7 @@ void Grid_Disp(Board_Type *board, char ifter)
         isvtt = i/board->npt==board->tert[1];
         ishtt = (i+1)/board->npt==board->tert[1]||(i+1)/board->npt==board->tert[1]+1;        
 
-        addr = i* board->row;
+        addr = board->grid + i * board->row;
 
         vsep = board->tert[0]==0 && isvtt ?'%':'|';
         printf("%c",vsep);
@@ -46,7 +47,7 @@ void Grid_Disp(Board_Type *board, char ifter)
                 vsep =ifter == 1 && isvtt && ((j+1)/board->npt==board->tert[0]||(j+1)/board->npt==board->tert[0]+1) ? '%':'|' ;
             else
                 vsep = ' ';
-            printf(" %c %c", *(board->grid + addr  + j) == 'W' ? ' ' : *(board->grid + addr + j),vsep);
+            printf(" %c %c", *( addr  + j) == 'W' ? ' ' : *( addr + j),vsep);
         }
         printf("\r\n");
 
