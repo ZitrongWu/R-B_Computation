@@ -5,10 +5,14 @@
 int main(int argc , char **argv)
 {
     Board_Type board;
-    printf("number of rows per taill:");
-    scanf("%d",&board.npt);
-    printf("number of taills:");
+    unsigned int n;
+    // printf("number of rows per taill:");
+    // scanf("%d",&board.npt);
+    printtf("number of rows(n):");
+    scanf("%d",&n);
+    printf("number of taills(t):");
     scanf("%d",&board.not);
+    board.npt = n/board.not;
     printf("threshold(c%%):");
     scanf("%d",&board.c);
     printf("Maximum interactions:");
