@@ -11,7 +11,7 @@ int main(int argc , char **argv)
     
     Board_Struct_Init(&board);
 
-    printtf("number of rows(n):");
+    printf("number of rows(n):");
     scanf("%d",&n);
     printf("number of taills(t):");
     scanf("%d",&board.not);
@@ -54,6 +54,6 @@ int main(int argc , char **argv)
          printf("After %d interactions: \r\n",board->counter);
          Grid_Disp(board,0);
     }while(board->counter != board->maxa);
-    printf("Number of interactions = Max. \r\n",board->counter);
+    printf("Number of interactions = Max. \r\n");
     return 0;
  }

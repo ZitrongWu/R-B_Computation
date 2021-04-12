@@ -117,15 +117,15 @@ char Is_sotp(Board_Type *board)
 {
     unsigned int i,j,p,q;
     unsigned int rcout,bcount;
-    for (i=0;i!=board->not;i++)
+    for (i=0;i!=board->not;i++)//loop of tile(i,j)
     {
-        for(j=0;j!=board->not;j++)
+        for(j=0;j!=board->not;j++)//loop of tile(i,j)
         {
             rcout=0;
             bcount=0;
-            for(p=i*board->npt;p!=(i+1)*board->npt;p++)
+            for(p=i*board->npt;p!=(i+1)*board->npt;p++)//loop of cells(p,q) in tile(i,j)
             {
-                for(q=j*board->npt;q!=(j+1)*board->npt;q++)
+                for(q=j*board->npt;q!=(j+1)*board->npt;q++)//loop of cells(p,q) in tile(i,j)
                 {
                     if(*(board->grid + p*board->row + q )=='R')
                         rcout++;
@@ -142,7 +142,7 @@ char Is_sotp(Board_Type *board)
            }
            if(bcount >= board->ths)
            {
-                              board->tert[0] = i;
+               board->tert[0] = i;
                board->tert[1] = j;
                board->terc = 'B';
                return 1;
