@@ -4,6 +4,8 @@ void Grid_Init(Board_Type *board)
 {
     unsigned int i;
     unsigned int r;
+
+
     board->grid = (char *)malloc(board->bsz);
     srand(time(0));
     for (i = 0; i != board->bsz; i++)
@@ -16,6 +18,8 @@ void Grid_Init(Board_Type *board)
         else
             *(board->grid + i) = 'W';
     }
+
+
 }
 
 void Grid_Disp(Board_Type *board, char ifter)
@@ -147,4 +151,23 @@ char Is_sotp(Board_Type *board)
         }
     }
     return 0;
+}
+
+void Board_Struct_Init(Board_Type *board)
+{
+    board->row = 0;
+    board->cpt = 0;
+    board->bsz = 0;
+    board->ths = 0;
+    board->nott = 0;
+    board->bsz = 0;
+    board->counter = 0;
+    board->cpt = 0;
+    board->grid = NULL;
+    board->maxa = 0;
+    board->not = 0;
+    board->npt = 0;
+    board->terc = ' ';
+    board->tert = NULL;
+    board->nott = 0; 
 }

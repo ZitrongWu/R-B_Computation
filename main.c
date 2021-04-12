@@ -8,6 +8,9 @@ int main(int argc , char **argv)
     unsigned int n;
     // printf("number of rows per taill:");
     // scanf("%d",&board.npt);
+    
+    Board_Struct_Init(&board);
+
     printtf("number of rows(n):");
     scanf("%d",&n);
     printf("number of taills(t):");
@@ -18,6 +21,9 @@ int main(int argc , char **argv)
     printf("Maximum interactions:");
     scanf("%d",&board.maxa);
     printf("\r\n npt=%d,not=%d,c=%d%%\r\n",board.npt,board.not,board.c);
+
+    
+
 
     board.row = board.npt * board.not;
     board.cpt = board.npt * board.npt;
