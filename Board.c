@@ -5,6 +5,7 @@ void Grid_Init(Board_Type *board)
     unsigned int i;
     unsigned int r;
 
+    board->tert = malloc(board->not * board->not);
 
     board->grid = (char *)malloc(board->bsz);
     srand(time(0));
