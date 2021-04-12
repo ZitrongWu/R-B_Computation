@@ -18,7 +18,7 @@ typedef struct
     unsigned int bsz;   //board size (number of cells in the board}
     unsigned int nott;  //number of tiles meet the terminal condition
     unsigned int *tert;  //the rank of tile meet the terminal condition (x,y)
-    char terc;           //wich color meet the terminal condition
+    char *terc;           //wich color meet the terminal condition 1:Red 2:Blue 3:both
     unsigned int counter; //interactions conter
     unsigned int maxa; //maximum number of interactions
     char *grid;         //pointer to the satrt address of the board   

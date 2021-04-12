@@ -38,14 +38,18 @@ int main(int argc , char **argv)
 
  char Sequancial(Board_Type *board)
  {
+    unsigned int i;
     Grid_Disp(board,0);
     board->counter=0;
     do
     {
-        if(Is_sotp(board)) 
+        Is_sotp(board);
+        if(board->nott!=0) 
         {
-            Grid_Disp(board,1);
-            printf("After %d interactions, terminal condition is met: in tile (%d,%d) marked by \"%%\" the %s cells are more than %d%% of cells in the tile. \r\n",board->counter ,board->tert[0],board->tert[1],board->terc=='R'?"Red":"Blue",board->c);          
+            Grid_Disp(board,0);
+            printf("After %d interactions, terminal condition is met! \r\n",board->counter);          
+            for (i=0;i!=board->nott;i++)
+                printf("the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n",(*board->terc)==1?"Red":(*board->terc)==2?"Blue":"Red and Blue",(*board->terc)==3?"are":"is",board->c,*(board->tert+2*i),*(board->tert+2*i+1));
             return 0;
         }
          Move_Red(board);

@@ -5,8 +5,8 @@ void Grid_Init(Board_Type *board)
     unsigned int i;
     unsigned int r;
 
-    board->tert = malloc(board->not * board->not);
-
+    board->tert = malloc(board->not * board->not * 2 * sizeof(*board->tert));
+    board->terc = (char *)malloc(board->not * board->not);
     board->grid = (char *)malloc(board->bsz);
     srand(time(0));
     for (i = 0; i != board->bsz; i++)
@@ -19,7 +19,6 @@ void Grid_Init(Board_Type *board)
         else
             *(board->grid + i) = 'W';
     }
-
 
 }
 
@@ -116,7 +115,7 @@ void Move_Blue(Board_Type *board)
 }
 char Is_sotp(Board_Type *board)
 {
-    unsigned int i,j,p,q;
+    unsigned int i,j,p,q,flag;
     unsigned int rcout,bcount;
     for (i=0;i!=board->not;i++)//loop of tile(i,j)
     {
@@ -124,6 +123,7 @@ char Is_sotp(Board_Type *board)
         {
             rcout=0;
             bcount=0;
+            flag = 0;
             for(p=i*board->npt;p!=(i+1)*board->npt;p++)//loop of cells(p,q) in tile(i,j)
             {
                 for(q=j*board->npt;q!=(j+1)*board->npt;q++)//loop of cells(p,q) in tile(i,j)
@@ -134,21 +134,28 @@ char Is_sotp(Board_Type *board)
                         bcount++;
                 }
             }
+            *(board->terc+board->nott) = 0;
            if(  rcout >= board->ths )
            {
-               board->tert[0] = i;
-               board->tert[1] = j;
-               board->terc = 'R';
-               return 1;
+               *(board->tert+board->nott*2) = i;
+               *(board->tert+board->nott*2+1) = j;
+
+               *(board->terc+board->nott) += 1;
+               flag = 1;
+
            }
+           
            if(bcount >= board->ths)
            {
-               board->tert[0] = i;
-               board->tert[1] = j;
-               board->terc = 'B';
-               return 1;
+               *(board->tert+board->nott*2) = i;
+               *(board->tert+board->nott*2+1) = j;
+
+               *(board->terc+board->nott) += 2;
+               flag = 1;
            }
-    
+           
+            board->nott += flag;
+            
         }
     }
     return 0;
@@ -168,7 +175,7 @@ void Board_Struct_Init(Board_Type *board)
     board->maxa = 0;
     board->not = 0;
     board->npt = 0;
-    board->terc = ' ';
+    board->terc = NULL;
     board->tert = NULL;
     board->nott = 0; 
 }
