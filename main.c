@@ -11,26 +11,29 @@ int main(int argc , char **argv)
     
     Board_Struct_Init(&board);
 
-    printf("number of rows(n):");
+    printf("Number of rows(n) in the board:");
     scanf("%d",&n);
 
     while(1)
     {
-        printf("number of taills(t):");
+        printf("Number of taills(t) in a dimension:");
         scanf("%d",&board.not);
-        if (board.not>0)
+        if (board.not<=n)
             break;
-        printf("input error\r\n");       
+        else
+            printf("There should be at lest one row per tile.\r\n");     
     }
 
     board.npt = n/board.not;
+    
     while(1)
     {
-        printf("threshold(0<=c%%<=100):");
+        printf("Threshold(0<=c%%<=100):");
         scanf("%d",&board.c);
         if (board.c<=100 || board.c>=0)
             break;
-        printf("input error\r\n");
+        else
+            printf("c%% shoudl be in range from 0 to 100.\r\n");
     }
 
     printf("Maximum interactions:");
