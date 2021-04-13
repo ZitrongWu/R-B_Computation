@@ -13,14 +13,30 @@ int main(int argc , char **argv)
 
     printf("number of rows(n):");
     scanf("%d",&n);
-    printf("number of taills(t):");
-    scanf("%d",&board.not);
+
+    while(1)
+    {
+        printf("number of taills(t):");
+        scanf("%d",&board.not);
+        if (board.not>0)
+            break;
+        printf("input error\r\n");       
+    }
+
     board.npt = n/board.not;
-    printf("threshold(c%%):");
-    scanf("%d",&board.c);
+    while(1)
+    {
+        printf("threshold(0<=c%%<=100):");
+        scanf("%d",&board.c);
+        if (board.c<=100 || board.c>=0)
+            break;
+        printf("input error\r\n");
+    }
+
     printf("Maximum interactions:");
     scanf("%d",&board.maxa);
-    printf("\r\n npt=%d,not=%d,c=%d%%\r\n",board.npt,board.not,board.c);
+
+    printf("\r\n n=%d,t=%d,c=%d%%\r\n",n,board.not,board.c);
 
     
 
