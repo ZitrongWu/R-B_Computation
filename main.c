@@ -1,15 +1,21 @@
 #include "Board.h"
 
- char Sequancial(Board_Type *board);
-
+char Sequancial(Board_Type *board);
+char Parallel(Board_Type *board);
 int main(int argc , char **argv)
 {
-    Board_Type board;
+    int rank, size;
+    Board_Type board_s,board_p;
     unsigned int n;
     // printf("number of rows per taill:");
     // scanf("%d",&board.npt);
     
-    Board_Struct_Init(&board);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+
+    Board_Struct_Init(&board_s);
 
     printf("Number of rows(n) in the board:");
     scanf("%d",&n);
@@ -17,40 +23,41 @@ int main(int argc , char **argv)
     while(1)
     {
         printf("Number of taills(t) in a dimension:");
-        scanf("%d",&board.not);
-        if (board.not<=n)
+        scanf("%d",&board_s.not);
+        if (board_s.not<=n)
             break;
         else
             printf("There should be at lest one row per tile.\r\n");     
     }
 
-    board.npt = n/board.not;
-    
+    board_s.npt = n/board_s.not;
+
     while(1)
     {
         printf("Threshold(0<=c%%<=100):");
-        scanf("%d",&board.c);
-        if (board.c<=100 || board.c>=0)
+        scanf("%d",&board_s.c);
+        if (board_s.c<=100 || board_s.c>=0)
             break;
         else
             printf("c%% shoudl be in range from 0 to 100.\r\n");
     }
 
     printf("Maximum interactions:");
-    scanf("%d",&board.maxa);
+    scanf("%d",&board_s.maxa);
 
-    printf("\r\n n=%d,t=%d,c=%d%%\r\n",n,board.not,board.c);
+    printf("\r\n n=%d,t=%d,c=%d%%\r\n",n,board_s.not,board_s.c);
 
-    
+    board_s.row = board_s.npt * board_s.not;
+    board_s.cpt = board_s.npt * board_s.npt;
+    board_s.bsz = (unsigned int)pow(board_s.row,2);
+    board_s.ths = board_s.npt * board_s.npt * board_s.c * 0.01;
+
+    Grid_Init(&board_s);
 
 
-    board.row = board.npt * board.not;
-    board.cpt = board.npt * board.npt;
-    board.bsz = (unsigned int)pow(board.row,2);
-    board.ths = board.npt * board.npt * board.c * 0.01;
+    Sequancial(&board_s);
 
-    Grid_Init(&board);
-    Sequancial(&board);
+    MPI_Finalize();
     return 0;
 }
 
@@ -79,4 +86,9 @@ int main(int argc , char **argv)
     }while(board->counter != board->maxa);
     printf("Number of interactions = Max. \r\n");
     return 0;
+ }
+
+ char Parallel(Board_Type *board)
+ {
+     return 0;
  }
