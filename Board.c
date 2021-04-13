@@ -214,4 +214,25 @@ char Self_Check(Board_Type *b1,Board_Type *b2)
             return 1;                       
         }
     }
+    return 0;
+}
+
+void Board_Decompose(Proc_Type* proc, unsigned int n, unsigned not)
+{
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    proc->lastp = rank==0?size-1:rank-1;
+    proc->nextp = rank==size-1?0:rank+1;
+
+    // proc->size[0] = rank==size-1?n/size+n%size:n/size;
+    // proc->size[1] = n;
+
+    proc->tile[0] = rank==size-1?not/size+not%size:n/size;
+    proc->tile[1] = not;
+
+    proc->size[0] = proc->tile[0]*n/not;
+    proc->size[1] = n;
+
 }

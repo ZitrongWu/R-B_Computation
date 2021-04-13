@@ -5,6 +5,18 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include "mpi.h"
+
+typedef struct
+{
+    unsigned int c;
+    unsigned int max; 
+    unsigned int size[2];   //size(x,y) the processor control a x*y matrix of the board
+    unsigned int tile[2];   //tile(x,y) the processor control x*y tiles
+    unsigned int lastp;     //last processor in rank
+    unsigned int nextp;     //next processor in rank
+}Proc_Type;
+
 
 
 typedef struct
@@ -24,10 +36,10 @@ typedef struct
     char *grid;         //pointer to the satrt address of the board   
 }Board_Type;
 
-void Grid_Init(Board_Type *board);
-void Grid_Disp(Board_Type *board, char ifter);
-void Move_Red(Board_Type *board);
-void Move_Blue(Board_Type *board);
-char Is_sotp(Board_Type *board);
+void Board_Grid_Init(Board_Type *board);
+void Board_Grid_Disp(Board_Type *board, char ifter);
+void Board_Move_Red(Board_Type *board);
+void Board_Move_Blue(Board_Type *board);
+char Board_Is_sotp(Board_Type *board);
 void Board_Struct_Init(Board_Type *board);
 #endif
