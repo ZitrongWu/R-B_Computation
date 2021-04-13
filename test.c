@@ -25,7 +25,7 @@ int main(int argc , char **argv)
     board.bsz = (unsigned int)pow(board.row,2);
     board.ths = board.npt * board.npt * board.c * 0.01;
 
-    Grid_Init(&board);
+    Board_Grid_Init(&board);
     Sequancial(&board);
     return 0;
 }
@@ -34,10 +34,10 @@ int main(int argc , char **argv)
  char Sequancial(Board_Type *board)
  {
     unsigned int i;
-    Grid_Disp(board,0);
+    Board_Grid_Disp(board,0);
 
-        Is_sotp(board);
-        Grid_Disp(board,0);
+        Board_Is_Sotp(board);
+        Board_Grid_Disp(board,0);
         i=4;
         printf("the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n",(*board->terc)==1?"Red":(*board->terc)==2?"Blue":"Red and Blue",(*board->terc)==3?"are":"is",board->c,*(board->tert+2*i),*(board->tert+2*i+1));
 

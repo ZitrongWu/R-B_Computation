@@ -1,6 +1,6 @@
 #include "Board.h"
 
-void Grid_Init(Board_Type *board)
+void Board_Grid_Init(Board_Type *board)
 {
     unsigned int i;
     unsigned int r;
@@ -22,7 +22,7 @@ void Grid_Init(Board_Type *board)
 
 }
 
-void Grid_Disp(Board_Type *board, char ifter)
+void Board_Grid_Disp(Board_Type *board, char ifter)
 {  
     unsigned int i, j, ishtt, isvtt;
     char *addr;//address of begin of rows
@@ -74,7 +74,7 @@ void Grid_Disp(Board_Type *board, char ifter)
 }
 
 
-void Move_Red(Board_Type *board)
+void Board_Move_Red(Board_Type *board)
 {
     unsigned int i, j;
     char *cur,*dist;
@@ -94,7 +94,7 @@ void Move_Red(Board_Type *board)
     } 
 }
 
-void Move_Blue(Board_Type *board)
+void Board_Move_Blue(Board_Type *board)
 {
     unsigned int i, j;
     char *cur,*dist;
@@ -113,7 +113,7 @@ void Move_Blue(Board_Type *board)
         }
     } 
 }
-char Is_sotp(Board_Type *board)
+char Board_Is_Sotp(Board_Type *board)
 {
     unsigned int i,j,p,q,flag;
     unsigned int rcout,bcount;
