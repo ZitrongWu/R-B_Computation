@@ -179,3 +179,39 @@ void Board_Struct_Init(Board_Type *board)
     board->tert = NULL;
     board->nott = 0; 
 }
+
+char Self_Check(Board_Type *b1,Board_Type *b2)
+{
+    unsigned int i;
+    if(b1->bsz!=b2->bsz)
+    {
+        printf("The size of board dose not match!\r\n");
+        return 1;
+    }
+    for (i=0;i!=b1->bsz;i++)
+    {
+        if(*(b1->grid+i)!=*(b2->grid+i))
+        {
+            printf("The grid dose not match!\r\n");
+            return 1;
+        }
+    }
+    if(b1->nott!=b2->nott)
+    {
+        printf("The terminated tiles dose not match!\r\n");
+        return 1;
+    }
+    for(i=0;i!=b1->nott;i++)
+    {
+        if(*(b1->tert+i*2)!=*(b2->tert+i*2)||*(b1->tert+i*2+1)!=*(b2->tert+i*2+1))
+        {
+            printf("The coordinate of terminated tiles dose not match!\r\n");
+            return 1;           
+        }
+        if(*(b1->terc+i)!=*(b2->terc+i))
+        {
+            printf("The color of terminated tiles dose not match!\r\n");
+            return 1;                       
+        }
+    }
+}
