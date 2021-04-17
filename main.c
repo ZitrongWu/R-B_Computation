@@ -6,6 +6,7 @@ int main(int argc , char **argv)
 {
     int world_rank, world_size;
     Board_Type board;
+    Proc_Type Proc;
     unsigned int m[4];//n,t,c,m
     unsigned int n;
     // printf("number of rows per taill:");
@@ -19,21 +20,21 @@ int main(int argc , char **argv)
    
     if(world_rank == 0)
     {
-         Board_Struct_Init(&board);
+        Board_Struct_Init(&board);
         printf("Number of rows(n) in the board:\r\n");
-        scanf("%d",&n);
+        scanf("%d",&board.n);
 
         while(1)
         {
             printf("Number of taills(t) in a dimension:\r\n");
-            scanf("%d",&board.not);
-            if (board.not<=n)
+            scanf("%d",&board.tile[1]);
+            if (board.tile[1]<=n)
                 break;
             else
-                printf("There should be at lest one row per tile.\r\n");     
+                printf("There should be at lest one n per tile.\r\n");     
         }
 
-        board.npt = n/board.not;
+        
 
         while(1)
         {
@@ -48,20 +49,21 @@ int main(int argc , char **argv)
         printf("Maximum interactions:\r\n");
         scanf("%d",&board.maxa);
 
-        printf("\r\n n=%d,t=%d,c=%d%%\r\n",n,board.not,board.c);
+        printf("\r\n n=%d,t=%d,c=%d%%\r\n",n,board.tile[1],board.c);
 
-        board_s.row = board_s.npt * board_s.not;
-        board_s.cpt = board_s.npt * board_s.npt;
-        board_s.bsz = (unsigned int)pow(board_s.row,2);
-        board_s.ths = board_s.npt * board_s.npt * board_s.c * 0.01;
+        
+        board.size[0] = board.n;
+        board.bsz = board.n * board.size[0];
+        board.npt = board.n / board.tile[1];
+        board.ths = board.npt * board.npt * board.c * 0.01;
 
-        Board_Grid_Init(&board_s);
+        Board_Grid_Init(&board);
 
 
-        Sequancial(&board_s);
+        Sequancial(&board);
 
-        m[0]=n;
-        m[1]=board.not;
+        m[0]=board.n;
+        m[1]=board.tile[1];
         m[2]=board.c;
         m[3]=board.maxa;
 
@@ -69,7 +71,19 @@ int main(int argc , char **argv)
     }
     MPI_Bcast(m,4,MPI_INT,0,MPI_COMM_WORLD);
 
-    printf("processor %d received massages %d %d %d %d\r\n",world_rank,m[0],m[1],m[2],m[3]);
+
+        board.n=m[0];
+        board.tile[1]=m[1];
+        board.c=m[2];
+        board.maxa=m[3];
+
+    if(Board_Decompose(&Proc))
+    {
+        
+        MPI_Finalize();
+        return 0;
+    }
+
 
     MPI_Finalize();
     return 0;
