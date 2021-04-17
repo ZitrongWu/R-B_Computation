@@ -13,14 +13,8 @@ int main(int argc, char **argv)
 
     if (board.world_rank == MASTER)
     {
-        //Board_index(&board);
+        Board_index(&board);
 
-        board.n = 10;
-        board.t = 2;
-        board.c = 70;
-        board.maxa = 1000;
-        board.npt = board.n / board.t;
-        board.ths = board.npt * board.npt * board.c * 0.01;
 
         printf("\r\n n=%d,t=%d,c=%d%%\r\n", board.n, board.t, board.c);
 
