@@ -16,7 +16,7 @@ int main(int argc, char **argv)
         //Board_index(&board);
 
         board.n = 10;
-        board.t = 2;
+        board.t = 5;
         board.c = 100;
         board.maxa = 1000;
         board.npt = board.n / board.t;
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
         printf("\r\n n=%d,t=%d,c=%d%%\r\n", board.n, board.t, board.c);
 
         Board_Decompose(&board, MASTER, 1);
-
+        //printf("l=%d n=%d",board.lastp,board.nextp);
         Board_Grid_Init(&board);
 
         Board_Grid_Disp(&board, 0);

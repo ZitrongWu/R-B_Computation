@@ -93,13 +93,26 @@ void Board_Move_Red(Board_Type *board)
 void Board_Move_Blue(Board_Type *board)
 {
     unsigned int i, j;
-    char *cur, *dist;
+    char *cur, *dist , *head, *tail, *temp;
+    head = malloc(board->size[1]);
+    tail = malloc(board->size[1]);
+    temp = malloc(board->size[1]*(board->size[0]+2));
+    MPI_Sendrecv(board->grid+(board->size[0]-1)*board->size[1],board->size[1],MPI_CHAR,board->nextp,0
+                ,head,board->size[1],MPI_CHAR,board->lastp,0
+                ,MPI_COMM_WORLD,MPI_STATUS_IGNORE);//transmit the last row to next process and recieve from last process
+
+    memcpy(temp,head,board->size[1]);//expand the head
+    memcpy(temp + board->size[1],board->grid,board->bsz);
+    MPI_Sendrecv(board->grid,board->size[1],MPI_CHAR,board->lastp,0
+                ,tail,board->size[1],MPI_CHAR,board->nextp,0
+                ,MPI_COMM_WORLD,MPI_STATUS_IGNORE);//transmit the first row to next process and recieve from last process
+    memcpy(temp + board->size[1]+board->bsz,tail,board->size[1]);//expand the tail
     for (j = 0; j != board->size[1]; j++)
     {
-        for (i = 0; i < board->size[0]; i++)
+        for (i = 0; i < board->size[0]+1; i++)      //as a ordinary board added by 2 extra row fome neighbor
         {
-            cur = board->grid + i * board->size[0] + j;
-            dist = board->grid + ((i + 1) % board->size[1]) * board->size[0] + j;
+            cur = temp + i * board->size[1] + j;
+            dist = temp + (i + 1)  * board->size[1] + j;
             if (*cur == BLUE && *dist == WITHE)
             {
                 *dist = BLUE;
@@ -107,7 +120,13 @@ void Board_Move_Blue(Board_Type *board)
                 i++;
             }
         }
+
     }
+    memcpy(board->grid,temp + board->size[1],board->bsz);
+    
+    free(tail);
+    free(head);
+    free(temp);
 }
 
 char Board_Is_Sotp(Board_Type *board)
@@ -134,8 +153,8 @@ char Board_Is_Sotp(Board_Type *board)
             *(board->terc + board->nott) = 0;
             if (rcout >= board->ths)
             {
-                *(board->tert + board->nott * 2) = i + board->tile[0];
-                *(board->tert + board->nott * 2 + 1) = j + board->tile[1];
+                *(board->tert + board->nott * 2) = i + board->tile_start[0];
+                *(board->tert + board->nott * 2 + 1) = j + board->tile_start[1];
 
                 *(board->terc + board->nott) += RED;
                 flag = 1;
@@ -143,8 +162,8 @@ char Board_Is_Sotp(Board_Type *board)
 
             if (bcount >= board->ths)
             {
-                *(board->tert + board->nott * 2) = i + board->tile[0];
-                *(board->tert + board->nott * 2 + 1) = j + board->tile[1];
+                *(board->tert + board->nott * 2) = i + board->tile_start[0];
+                *(board->tert + board->nott * 2 + 1) = j + board->tile_start[1];
 
                 *(board->terc + board->nott) += BLUE;
                 flag = 1;
@@ -329,7 +348,7 @@ char Board_Operation(Board_Type *board)
         if (board->nott != 0)
         {
             Board_Grid_Disp(board, 0);
-            printf("After %d interactions, terminal condition is met! \r\n", board->counter);
+            printf("terminal condition is met! \r\n");
             for (i = 0; i != board->nott; i++)
                 printf("the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
                                                                                                                                               : "Red and Blue",
@@ -339,9 +358,10 @@ char Board_Operation(Board_Type *board)
         Board_Move_Red(board);
         Board_Move_Blue(board);
         
-        printf("After %d interactions: \r\n", board->counter);
-        Board_Grid_Disp(board, 0);
+         printf("After %d interactions: \r\n", board->counter);
+         Board_Grid_Disp(board, 0);
     }
+    printf("terminal condition is met! \r\n");
     printf("Number of interactions = Max. \r\n");
     return 0;
 }
