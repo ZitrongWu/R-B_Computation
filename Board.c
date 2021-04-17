@@ -51,7 +51,9 @@ void Board_Grid_Disp(Board_Type *board, char ifter)
                 vsep = ifter == 1 && isvtt && ((j + 1) / board->npt == board->tert[0] || (j + 1) / board->npt == board->tert[0] + 1) ? '%' : '|';
             else
                 vsep = ' ';
-            printf(" %c %c", *(addr + j) == WITHE ? ' ' : *(addr + j)==RED?'R':'B', vsep);
+            printf(" %c %c", *(addr + j) == WITHE ? ' ' : *(addr + j) == RED ? 'R'
+                                                                             : 'B',
+                   vsep);
         }
         printf("\r\n");
 
@@ -93,26 +95,22 @@ void Board_Move_Red(Board_Type *board)
 void Board_Move_Blue(Board_Type *board)
 {
     unsigned int i, j;
-    char *cur, *dist , *head, *tail, *temp;
+    char *cur, *dist, *head, *tail, *temp;
     head = malloc(board->size[1]);
     tail = malloc(board->size[1]);
-    temp = malloc(board->size[1]*(board->size[0]+2));
-    MPI_Sendrecv(board->grid+(board->size[0]-1)*board->size[1],board->size[1],MPI_CHAR,board->nextp,0
-                ,head,board->size[1],MPI_CHAR,board->lastp,0
-                ,MPI_COMM_WORLD,MPI_STATUS_IGNORE);//transmit the last row to next process and recieve from last process
+    temp = malloc(board->size[1] * (board->size[0] + 2));
+    MPI_Sendrecv(board->grid + (board->size[0] - 1) * board->size[1], board->size[1], MPI_CHAR, board->nextp, 0, head, board->size[1], MPI_CHAR, board->lastp, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //transmit the last row to next process and recieve from last process
 
-    memcpy(temp,head,board->size[1]);//expand the head
-    memcpy(temp + board->size[1],board->grid,board->bsz);
-    MPI_Sendrecv(board->grid,board->size[1],MPI_CHAR,board->lastp,0
-                ,tail,board->size[1],MPI_CHAR,board->nextp,0
-                ,MPI_COMM_WORLD,MPI_STATUS_IGNORE);//transmit the first row to next process and recieve from last process
-    memcpy(temp + board->size[1]+board->bsz,tail,board->size[1]);//expand the tail
+    memcpy(temp, head, board->size[1]); //expand the head
+    memcpy(temp + board->size[1], board->grid, board->bsz);
+    MPI_Sendrecv(board->grid, board->size[1], MPI_CHAR, board->lastp, 0, tail, board->size[1], MPI_CHAR, board->nextp, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //transmit the first row to next process and recieve from last process
+    memcpy(temp + board->size[1] + board->bsz, tail, board->size[1]);                                                                                         //expand the tail
     for (j = 0; j != board->size[1]; j++)
     {
-        for (i = 0; i < board->size[0]+1; i++)      //as a ordinary board added by 2 extra row fome neighbor
+        for (i = 0; i < board->size[0] + 1; i++) //as a ordinary board added by 2 extra row fome neighbor
         {
             cur = temp + i * board->size[1] + j;
-            dist = temp + (i + 1)  * board->size[1] + j;
+            dist = temp + (i + 1) * board->size[1] + j;
             if (*cur == BLUE && *dist == WITHE)
             {
                 *dist = BLUE;
@@ -120,10 +118,9 @@ void Board_Move_Blue(Board_Type *board)
                 i++;
             }
         }
-
     }
-    memcpy(board->grid,temp + board->size[1],board->bsz);
-    
+    memcpy(board->grid, temp + board->size[1], board->bsz);
+
     free(tail);
     free(head);
     free(temp);
@@ -133,6 +130,11 @@ char Board_Is_Sotp(Board_Type *board)
 {
     unsigned int i, j, p, q, flag;
     unsigned int rcout, bcount;
+    // for (i = 0; i != board->size[0] * board->size[1]; i++)
+    // {
+    //     printf("%d ", *((char *)board->grid + i));
+    // }
+    // printf("\r\n");
     for (i = 0; i != board->tile[0]; i++) //loop of tile(i,j)
     {
         for (j = 0; j != board->tile[1]; j++) //loop of tile(i,j)
@@ -144,6 +146,7 @@ char Board_Is_Sotp(Board_Type *board)
             {
                 for (q = j * board->npt; q != (j + 1) * board->npt; q++) //loop of cells(p,q) in tile(i,j)
                 {
+
                     if (*(board->grid + p * board->n + q) == RED)
                         rcout++;
                     else if (*(board->grid + p * board->n + q) == BLUE)
@@ -151,6 +154,7 @@ char Board_Is_Sotp(Board_Type *board)
                 }
             }
             *(board->terc + board->nott) = 0;
+
             if (rcout >= board->ths)
             {
                 *(board->tert + board->nott * 2) = i + board->tile_start[0];
@@ -198,6 +202,16 @@ void Board_Struct_Init(Board_Type *board)
     board->terc = NULL; //wich color meet the terminal condition 1:Red 2:Blue 3:both
     board->counter = 0; //interactions conter
 
+    board->grid = NULL; //pointer to the satrt address of the board
+}
+
+void Board_Struct_Finalize(Board_Type *board)
+{
+    free((void *)board->tert);
+    board->tert = NULL; //the rank of tile meet the terminal condition (x,y)
+    free((void *)board->terc);
+    board->terc = NULL; //wich color meet the terminal condition 1:Red 2:Blue 3:both
+    free((void *)board->grid);
     board->grid = NULL; //pointer to the satrt address of the board
 }
 
@@ -249,10 +263,13 @@ char Board_Decompose(Board_Type *board, int rank, int size)
     board->lastp = rank == 0 ? size - 1 : rank - 1;
     board->nextp = rank == size - 1 ? 0 : rank + 1;
 
+    board->npt = board->n / board->t;
+    board->ths = board->npt * board->npt * board->c * 0.01;
+
     board->tile_start[0] = board->t / size * rank;
     board->tile_start[1] = 0;
 
-    board->cell_start = board->n / size * rank * board->n;
+    board->cell_start = board->tile_start[0] * board->npt * board->n;
 
     board->tile[0] = rank == size - 1 ? board->t / size + (board->t % size) : board->t / size;
     board->tile[1] = board->t;
@@ -264,6 +281,8 @@ char Board_Decompose(Board_Type *board, int rank, int size)
 
     board->terc = (char *)malloc(board->tile[0] * board->tile[1]);
 
+    board->grid = malloc(board->size[0] * board->size[1]);
+
     board->bsz = board->size[1] * board->size[0];
 
     return 0;
@@ -272,11 +291,9 @@ char Board_Decompose(Board_Type *board, int rank, int size)
 void Board_Sch_Master(Board_Type *board)
 {
 
-    MPI_Bcast(board, 4, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+    MPI_Bcast(board, 4, MPI_UNSIGNED, MASTER, MPI_COMM_WORLD);
 
-    MPI_Bcast(board->grid, board->n * board->n, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-    Board_Decompose(board, MASTER, board->world_size);
+    MPI_Bcast(board->grid, board->n * board->n, MPI_CHAR, MASTER, MPI_COMM_WORLD);
 }
 
 char Board_Sch_Slave(Board_Type *board)
@@ -284,17 +301,17 @@ char Board_Sch_Slave(Board_Type *board)
     unsigned int i;
     void *g;
 
-    MPI_Bcast(board, 4, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+    MPI_Bcast(board, 4, MPI_UNSIGNED, MASTER, MPI_COMM_WORLD);
 
     g = malloc(board->n * board->n);
-    
+
     if (Board_Decompose(board, board->world_rank, board->world_size))
     {
         printf("already decompse every tile, process %d will be finalized", board->world_rank);
         return 1;
     }
-    board->grid = malloc(board->size[0] * board->size[1]);
-    MPI_Bcast(g, board->n * board->n, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+    MPI_Bcast(g, board->n * board->n, MPI_CHAR, MASTER, MPI_COMM_WORLD);
 
     memcpy(board->grid, (char *)g + board->cell_start, board->size[0] * board->size[1]);
 
@@ -338,30 +355,64 @@ void Board_index(Board_Type *board)
     board->ths = board->npt * board->npt * board->c * 0.01;
 }
 
-char Board_Operation(Board_Type *board)
+char Board_Sequantial(Board_Type *board)
 {
     unsigned int i;
 
-    for(board->counter=0;board->counter!=board->maxa+1;board->counter++)
+    board->nott = 0;
+    for (board->counter = 0; board->counter != board->maxa + 1; board->counter++)
     {
+        printf("After %d interactions: \r\n", board->counter);
+        Board_Grid_Disp(board, 0);
+
         Board_Is_Sotp(board);
+
         if (board->nott != 0)
         {
-            Board_Grid_Disp(board, 0);
             printf("terminal condition is met! \r\n");
             for (i = 0; i != board->nott; i++)
                 printf("the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
-                                                                                                                                              : "Red and Blue",
+                                                                                                                                                   : "Red and Blue",
                        (*board->terc) == BOTH ? "are" : "is", board->c, *(board->tert + 2 * i), *(board->tert + 2 * i + 1));
             return 0;
         }
+
         Board_Move_Red(board);
         Board_Move_Blue(board);
-        
-         printf("After %d interactions: \r\n", board->counter);
-         Board_Grid_Disp(board, 0);
     }
     printf("terminal condition is met! \r\n");
     printf("Number of interactions = Max. \r\n");
+    return 0;
+}
+
+char Board_Parellel(Board_Type *board)
+{
+    unsigned int i;
+    char rec = 0, stop = 0;
+    board->nott = 0;
+    for (board->counter = 0; board->counter != board->maxa + 1; board->counter++)
+    {
+
+        Board_Is_Sotp(board);
+
+        if (board->nott != 0)
+        {
+            printf("process%d: terminal condition is met! \r\n", board->world_rank);
+            for (i = 0; i != board->nott; i++)
+                printf("process%d: After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", board->world_rank, board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
+                                                                                                                                                                                                                       : "Red and Blue",
+                       (*board->terc) == BOTH ? "are" : "is", board->c, *(board->tert + 2 * i), *(board->tert + 2 * i + 1));
+            stop = 1;
+            MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, MPI_COMM_WORLD);
+            return 0;
+        }
+        MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, MPI_COMM_WORLD);
+
+        if (rec == 1)
+            return 0;
+        Board_Move_Red(board);
+        Board_Move_Blue(board);
+    }
+
     return 0;
 }

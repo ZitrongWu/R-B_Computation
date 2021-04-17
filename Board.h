@@ -43,6 +43,7 @@ typedef struct
 } Board_Type;
 
 void Board_Grid_Init(Board_Type *board);
+void Board_Struct_Finalize(Board_Type *board);
 void Board_Grid_Disp(Board_Type *board, char ifter);
 void Board_Move_Red(Board_Type *board);
 void Board_Move_Blue(Board_Type *board);
@@ -52,5 +53,6 @@ char Board_Decompose(Board_Type *board, int rank, int size);
 void Board_Sch_Master(Board_Type* board);
 char Board_Sch_Slave(Board_Type* board);
 void Board_index(Board_Type *board);
-char Board_Operation(Board_Type *board);
+char Board_Sequantial(Board_Type *board);
+char Board_Parellel(Board_Type *board);
 #endif
