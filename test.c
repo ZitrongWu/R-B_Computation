@@ -15,10 +15,10 @@ int main(int argc, char **argv)
     {
         //Board_index(&board);
 
-        board.n = 12;
-        board.t = 4;
-        board.c = 10;
-        board.maxa = 100;
+        board.n = 10;
+        board.t = 2;
+        board.c = 70;
+        board.maxa = 1000;
         board.npt = board.n / board.t;
         board.ths = board.npt * board.npt * board.c * 0.01;
 
@@ -31,6 +31,8 @@ int main(int argc, char **argv)
         Board_Grid_Disp(&board, 0);
 
         Sequancial(&board);
+
+        printf("starting parellel computing...\r\n");
 
         Board_Sch_Master(&board);
     }
