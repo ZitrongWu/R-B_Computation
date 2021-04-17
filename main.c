@@ -1,6 +1,5 @@
 #include "Board.h"
 
-char Sequancial(Board_Type *board);
 
 int main(int argc, char **argv)
 {
@@ -24,7 +23,7 @@ int main(int argc, char **argv)
 
         Board_Grid_Disp(&board, 0);
 
-        Sequancial(&board);
+        Board_Operation(&board);
 
         printf("starting parellel computing...\r\n");
 
@@ -45,7 +44,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-char Sequancial(Board_Type *board)
+char Board_Operation(Board_Type *board)
 {
     unsigned int i;
 

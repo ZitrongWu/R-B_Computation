@@ -11,11 +11,11 @@ void Board_Grid_Init(Board_Type *board)
     {
         r = rand() % 100;
         if (r < 33)
-            *(board->grid + i) = 'R';
+            *(board->grid + i) = RED;
         else if (r < 66)
-            *(board->grid + i) = 'B';
+            *(board->grid + i) = BLUE;
         else
-            *(board->grid + i) = 'W';
+            *(board->grid + i) = WITHE;
     }
 }
 
@@ -51,7 +51,7 @@ void Board_Grid_Disp(Board_Type *board, char ifter)
                 vsep = ifter == 1 && isvtt && ((j + 1) / board->npt == board->tert[0] || (j + 1) / board->npt == board->tert[0] + 1) ? '%' : '|';
             else
                 vsep = ' ';
-            printf(" %c %c", *(addr + j) == 'W' ? ' ' : *(addr + j), vsep);
+            printf(" %c %c", *(addr + j) == WITHE ? ' ' : *(addr + j)==RED?'R':'B', vsep);
         }
         printf("\r\n");
 
@@ -80,10 +80,10 @@ void Board_Move_Red(Board_Type *board)
         {
             cur = board->grid + i * board->size[0] + j;
             dist = board->grid + i * board->size[0] + ((j + 1) % board->size[0]);
-            if (*cur == 'R' && *dist == 'W')
+            if (*cur == RED && *dist == WITHE)
             {
-                *dist = 'R';
-                *cur = 'W';
+                *dist = RED;
+                *cur = WITHE;
                 j++;
             }
         }
@@ -100,10 +100,10 @@ void Board_Move_Blue(Board_Type *board)
         {
             cur = board->grid + i * board->size[0] + j;
             dist = board->grid + ((i + 1) % board->size[1]) * board->size[0] + j;
-            if (*cur == 'B' && *dist == 'W')
+            if (*cur == BLUE && *dist == WITHE)
             {
-                *dist = 'B';
-                *cur = 'W';
+                *dist = BLUE;
+                *cur = WITHE;
                 i++;
             }
         }
@@ -114,7 +114,7 @@ char Board_Is_Sotp(Board_Type *board)
 {
     unsigned int i, j, p, q, flag;
     unsigned int rcout, bcount;
-    for (i = 0; i != board->tile[1]; i++) //loop of tile(i,j)
+    for (i = 0; i != board->tile[0]; i++) //loop of tile(i,j)
     {
         for (j = 0; j != board->tile[1]; j++) //loop of tile(i,j)
         {
@@ -125,28 +125,28 @@ char Board_Is_Sotp(Board_Type *board)
             {
                 for (q = j * board->npt; q != (j + 1) * board->npt; q++) //loop of cells(p,q) in tile(i,j)
                 {
-                    if (*(board->grid + p * board->n + q) == 'R')
+                    if (*(board->grid + p * board->n + q) == RED)
                         rcout++;
-                    else if (*(board->grid + p * board->n + q) == 'B')
+                    else if (*(board->grid + p * board->n + q) == BLUE)
                         bcount++;
                 }
             }
             *(board->terc + board->nott) = 0;
             if (rcout >= board->ths)
             {
-                *(board->tert + board->nott * 2) = i;
-                *(board->tert + board->nott * 2 + 1) = j;
+                *(board->tert + board->nott * 2) = i + board->tile[0];
+                *(board->tert + board->nott * 2 + 1) = j + board->tile[1];
 
-                *(board->terc + board->nott) += 1;
+                *(board->terc + board->nott) += RED;
                 flag = 1;
             }
 
             if (bcount >= board->ths)
             {
-                *(board->tert + board->nott * 2) = i;
-                *(board->tert + board->nott * 2 + 1) = j;
+                *(board->tert + board->nott * 2) = i + board->tile[0];
+                *(board->tert + board->nott * 2 + 1) = j + board->tile[1];
 
-                *(board->terc + board->nott) += 2;
+                *(board->terc + board->nott) += BLUE;
                 flag = 1;
             }
 
@@ -317,4 +317,31 @@ void Board_index(Board_Type *board)
 
     board->npt = board->n / board->t;
     board->ths = board->npt * board->npt * board->c * 0.01;
+}
+
+char Board_Operation(Board_Type *board)
+{
+    unsigned int i;
+
+    for(board->counter=0;board->counter!=board->maxa+1;board->counter++)
+    {
+        Board_Is_Sotp(board);
+        if (board->nott != 0)
+        {
+            Board_Grid_Disp(board, 0);
+            printf("After %d interactions, terminal condition is met! \r\n", board->counter);
+            for (i = 0; i != board->nott; i++)
+                printf("the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
+                                                                                                                                              : "Red and Blue",
+                       (*board->terc) == BOTH ? "are" : "is", board->c, *(board->tert + 2 * i), *(board->tert + 2 * i + 1));
+            return 0;
+        }
+        Board_Move_Red(board);
+        Board_Move_Blue(board);
+        
+        printf("After %d interactions: \r\n", board->counter);
+        Board_Grid_Disp(board, 0);
+    }
+    printf("Number of interactions = Max. \r\n");
+    return 0;
 }
