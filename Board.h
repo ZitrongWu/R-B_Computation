@@ -7,6 +7,9 @@
 #include <time.h>
 #include "mpi.h"
 #include "string.h"
+
+#define MASTER 0
+
 typedef struct
 {
     unsigned int c;       //terminate condition in percent   
@@ -45,4 +48,5 @@ void Board_Struct_Init(Board_Type *board);
 char Board_Decompose(Board_Type *board, int rank, int size);
 void Board_Sch_Master(Board_Type* board);
 char Board_Sch_Slave(Board_Type* board);
+void Board_index(Board_Type *board);
 #endif

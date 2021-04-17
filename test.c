@@ -11,50 +11,23 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &board.world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &board.world_size);
 
-    if (board.world_rank == 0)
+    if (board.world_rank == MASTER)
     {
-        // printf("Number of rows(n) in the board:\r\n");
-        // scanf("%d", &board.n);
+        //Board_index(&board);
 
-        // while (1)
-        // {
-        //     printf("Number of taills(t) in a dimension:\r\n");
-        //     scanf("%d", &board.t);
-        //     if (board.t <= board.n)
-        //         break;
-        //     else
-        //         printf("There should be at lest one n per tile.\r\n");
-        // }
-
-        // while (1)
-        // {
-        //     printf("Threshold(0<=c%%<=100):\r\n");
-        //     scanf("%d", &board.c);
-        //     if (board.c <= 100 || board.c >= 0)
-        //         break;
-        //     else
-        //         printf("c%% shoudl be in range from 0 to 100.\r\n");
-        // }
-
-        // printf("Maximum interactions:\r\n");
-        // scanf("%d", &board.maxa);
-
-        board.n = 9;
-        board.t = 3;
-        board.c = 100;
-        board.maxa=100;
+        board.n = 12;
+        board.t = 4;
+        board.c = 10;
+        board.maxa = 100;
+        board.npt = board.n / board.t;
+        board.ths = board.npt * board.npt * board.c * 0.01;
 
         printf("\r\n n=%d,t=%d,c=%d%%\r\n", board.n, board.t, board.c);
 
-        // board.size[0] = board.n;
-        // board.size[1] = board.n;
-        // board.bsz = board.n * board.size[0];
-        // board.tile[0]=board.n;
-        // board.tile[1]=board.t;
-        // board.npt = board.n / board.tile[1];
-        // board.ths = board.npt * board.npt * board.c * 0.01;
-        Board_Decompose(&board,0,1);
-        
+        Board_Decompose(&board, MASTER, 1);
+
+        Board_Grid_Init(&board);
+
         Board_Grid_Disp(&board, 0);
 
         Sequancial(&board);
@@ -68,12 +41,9 @@ int main(int argc, char **argv)
             MPI_Finalize();
             return 0;
         }
-
-        printf("process %d ,bigin at (%d,%d),control %d * %d tile, control %d * %d cells\r\n",
-               board.world_rank, board.tile_start[1], board.tile_start[0], board.tile[0], board.tile[1], board.size[0], board.size[1]);
     }
-
-
+    printf("process %d ,bigin at tile(%d,%d), cell %d ,control %d * %d tile, %d * %d cells\r\n",
+           board.world_rank, board.tile_start[1], board.tile_start[0], board.cell_start, board.tile[0], board.tile[1], board.size[0], board.size[1]);
 
     MPI_Finalize();
     return 0;
@@ -82,7 +52,7 @@ int main(int argc, char **argv)
 char Sequancial(Board_Type *board)
 {
     unsigned int i;
-    
+
     board->counter = 0;
     do
     {

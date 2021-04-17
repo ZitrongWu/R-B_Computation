@@ -5,10 +5,6 @@ void Board_Grid_Init(Board_Type *board)
     unsigned int i;
     unsigned int r;
 
-    board->tert = malloc(board->tile[1] * board->tile[0] * 2 * sizeof(*board->tert));
-
-    board->terc = (char *)malloc(board->tile[0] * board->tile[1]);
-
     board->grid = (char *)malloc(board->size[0] * board->size[1]);
     srand(time(0));
     for (i = 0; i != board->bsz; i++)
@@ -225,10 +221,8 @@ char Self_Check(Board_Type *b1, Board_Type *b2)
 
 char Board_Decompose(Board_Type *board, int rank, int size)
 {
-    size = size;
     if (rank >= board->t)
         return 1;
-        
 
     if (size > board->t)
         size = board->t;
@@ -247,19 +241,23 @@ char Board_Decompose(Board_Type *board, int rank, int size)
     board->size[0] = board->tile[0] * board->n / board->t;
     board->size[1] = board->n;
 
-    board->grid = malloc(board->size[0] * board->size[1]);
+    board->tert = malloc(board->tile[1] * board->tile[0] * 2 * sizeof(*board->tert));
+
+    board->terc = (char *)malloc(board->tile[0] * board->tile[1]);
+
+    board->bsz = board->size[1] * board->size[0];
+
     return 0;
 }
 
 void Board_Sch_Master(Board_Type *board)
 {
-    Board_Grid_Init(&board);
-    
+
     MPI_Bcast(board, 4, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-    
+
     MPI_Bcast(board->grid, board->n * board->n, MPI_CHAR, 0, MPI_COMM_WORLD);
-    
-    Board_Decompose(board);
+
+    Board_Decompose(board, MASTER, board->world_size);
 }
 
 char Board_Sch_Slave(Board_Type *board)
@@ -267,29 +265,56 @@ char Board_Sch_Slave(Board_Type *board)
     unsigned int i;
     void *g;
 
-
-    
     MPI_Bcast(board, 4, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
     g = malloc(board->n * board->n);
-    board->grid=malloc(board->size[0]*board->size[1]);
-    if (Board_Decompose(board,board->world_rank,board->world_size))
+    
+    if (Board_Decompose(board, board->world_rank, board->world_size))
     {
-        printf("already decompse every tile, process %d will be finalized",board->world_rank);  
+        printf("already decompse every tile, process %d will be finalized", board->world_rank);
         return 1;
     }
-
-
+    board->grid = malloc(board->size[0] * board->size[1]);
     MPI_Bcast(g, board->n * board->n, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    memcpy(board->grid,(char *)g+board->cell_start,board->size[0]*board->size[1]);
-    
-    free(g);
-   
+    memcpy(board->grid, (char *)g + board->cell_start, board->size[0] * board->size[1]);
+
+    free((void *)g);
 
     printf("process %d received massages n=%d,t=%d,c=%d%%,M=%d\r\n",
-           board->world_rank, board->n ,board->t, board->c, board->maxa);
+           board->world_rank, board->n, board->t, board->c, board->maxa);
 
     return 0;
 }
-void Board_
+
+void Board_index(Board_Type *board)
+{
+    printf("Number of rows(n) in the board:\r\n");
+    scanf("%d", &board->n);
+
+    while (1)
+    {
+        printf("Number of taills(t) in a dimension:\r\n");
+        scanf("%d", &board->t);
+        if (board->t <= board->n)
+            break;
+        else
+            printf("There should be at lest one n per tile.\r\n");
+    }
+
+    while (1)
+    {
+        printf("Threshold(0<=c%%<=100):\r\n");
+        scanf("%d", &board->c);
+        if (board->c <= 100 || board->c >= 0)
+            break;
+        else
+            printf("c%% shoudl be in range from 0 to 100.\r\n");
+    }
+
+    printf("Maximum interactions:\r\n");
+    scanf("%d", &board->maxa);
+
+    board->npt = board->n / board->t;
+    board->ths = board->npt * board->npt * board->c * 0.01;
+}
