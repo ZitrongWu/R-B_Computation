@@ -21,14 +21,14 @@ int main(int argc, char **argv)
 
             Board_Sequantial(&board_s);
 
-            printf("starting parellel computing...\r\n");
+            printf("starting parallel computing...\r\n");
 
             board_p = board_s;
         }
 
         if (Board_Sch_Slave(&board_p))
         {
-            printf("proces %d: nothing to do, terminated.\r\n", board_p.comm_rank);
+            printf("process %d: nothing to do, terminated.\r\n", board_p.comm_rank);
             MPI_Finalize();
             return 0;
         }
