@@ -148,11 +148,18 @@ char Board_Is_Sotp(Board_Type *board)
                 {
 
                     if (*(board->grid + p * board->n + q) == RED)
+
                         rcout++;
+    
                     else if (*(board->grid + p * board->n + q) == BLUE)
                         bcount++;
+  
                 }
             }
+
+            board->comm_rank,rcout,bcount,
+            i + board->tile_start[0],
+            j + board->tile_start[1]);
             *(board->terc + board->nott) = 0;
 
             if (rcout >= board->ths)
@@ -383,7 +390,7 @@ void Board_index(Board_Type *board)
 char Board_Sequantial(Board_Type *board)
 {
     unsigned int i;
-    
+
     Board_index(board); //input 4 user defined parameters
 
 
