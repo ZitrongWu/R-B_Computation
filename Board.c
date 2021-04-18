@@ -1,5 +1,5 @@
 #include "Board.h"
-
+MPI_Comm active_comm = MPI_COMM_WORLD;
 void Board_Grid_Init(Board_Type *board)
 {
     unsigned int i;
@@ -99,12 +99,12 @@ void Board_Move_Blue(Board_Type *board)
     head = malloc(board->size[1]);
     tail = malloc(board->size[1]);
     temp = malloc(board->size[1] * (board->size[0] + 2));
-    MPI_Sendrecv(board->grid + (board->size[0] - 1) * board->size[1], board->size[1], MPI_CHAR, board->nextp, 0, head, board->size[1], MPI_CHAR, board->lastp, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //transmit the last row to next process and recieve from last process
+    MPI_Sendrecv(board->grid + (board->size[0] - 1) * board->size[1], board->size[1], MPI_CHAR, board->nextp, 0, head, board->size[1], MPI_CHAR, board->lastp, 0, active_comm, MPI_STATUS_IGNORE); //transmit the last row to next process and recieve from last process
 
     memcpy(temp, head, board->size[1]); //expand the head
     memcpy(temp + board->size[1], board->grid, board->bsz);
-    MPI_Sendrecv(board->grid, board->size[1], MPI_CHAR, board->lastp, 0, tail, board->size[1], MPI_CHAR, board->nextp, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); //transmit the first row to next process and recieve from last process
-    memcpy(temp + board->size[1] + board->bsz, tail, board->size[1]);                                                                                         //expand the tail
+    MPI_Sendrecv(board->grid, board->size[1], MPI_CHAR, board->lastp, 0, tail, board->size[1], MPI_CHAR, board->nextp, 0, active_comm, MPI_STATUS_IGNORE); //transmit the first row to next process and recieve from last process
+    memcpy(temp + board->size[1] + board->bsz, tail, board->size[1]);                                                                                      //expand the tail
     for (j = 0; j != board->size[1]; j++)
     {
         for (i = 0; i < board->size[0] + 1; i++) //as a ordinary board added by 2 extra row fome neighbor
@@ -208,11 +208,11 @@ void Board_Struct_Init(Board_Type *board)
 void Board_Struct_Finalize(Board_Type *board)
 {
     free((void *)board->tert);
-    board->tert = NULL; //the rank of tile meet the terminal condition (x,y)
+    board->tert = NULL; 
     free((void *)board->terc);
-    board->terc = NULL; //wich color meet the terminal condition 1:Red 2:Blue 3:both
+    board->terc = NULL;  
     free((void *)board->grid);
-    board->grid = NULL; //pointer to the satrt address of the board
+    board->grid = NULL; 
 }
 
 char Self_Check(Board_Type *board_l, Board_Type *board_std)
@@ -223,12 +223,12 @@ char Self_Check(Board_Type *board_l, Board_Type *board_std)
 
     for (i = 0; i != board_l->nott; i++)
     {
-        local_sum += (char)(*(board_l->tert + i * 2) + *(board_l->tert + i * 2 + 1) +1) * *(board_l->terc + i); //coordinate of terminated tile * the color
+        local_sum += (char)(*(board_l->tert + i * 2) + *(board_l->tert + i * 2 + 1) + 1) * *(board_l->terc + i); //coordinate of terminated tile * the color
     }
 
-    MPI_Reduce(&local_sum, &remote_sum, 1, MPI_CHAR, MPI_SUM, MASTER, MPI_COMM_WORLD);
+    MPI_Reduce(&local_sum, &remote_sum, 1, MPI_CHAR, MPI_SUM, MASTER, active_comm);
 
-    if (board_l->world_rank == MASTER)
+    if (board_l->comm_rank == MASTER)
     {
 
         printf("Conducting self-checking...\r\n");
@@ -248,8 +248,6 @@ char Self_Check(Board_Type *board_l, Board_Type *board_std)
 
 char Board_Decompose(Board_Type *board, int rank, int size)
 {
-    if (rank >= board->t)
-        return 1;
 
     if (size > board->t)
         size = board->t;
@@ -287,7 +285,7 @@ void Board_Sch_Master(Board_Type *board)
 
     MPI_Bcast(board, 4, MPI_UNSIGNED, MASTER, MPI_COMM_WORLD);
 
-    MPI_Bcast(board->grid, board->n * board->n, MPI_CHAR, MASTER, MPI_COMM_WORLD);
+    MPI_Bcast(board->grid, board->n * board->n, MPI_CHAR, MASTER, active_comm);
 }
 
 char Board_Sch_Slave(Board_Type *board)
@@ -295,24 +293,55 @@ char Board_Sch_Slave(Board_Type *board)
     unsigned int i;
     void *g;
 
+    MPI_Comm temp;
+
+    // printf("proces %d: ",board->comm_rank);
+    //     for (i = 0; i != board->n * board->n; i++)
+    //     {
+    //         printf("%d ", *((char *)board->grid + i));
+    //     }
+    // printf("\r\n");
+
     MPI_Bcast(board, 4, MPI_UNSIGNED, MASTER, MPI_COMM_WORLD);
 
-    g = malloc(board->n * board->n);
-
-    if (Board_Decompose(board, board->world_rank, board->world_size))
+    if (board->comm_rank >= board->t)
     {
-        printf("already decompse every tile, process %d will be finalized", board->world_rank);
+        MPI_Comm_split(MPI_COMM_WORLD, 0, board->comm_rank, &temp);
         return 1;
     }
 
-    MPI_Bcast(g, board->n * board->n, MPI_CHAR, MASTER, MPI_COMM_WORLD);
+    MPI_Comm_split(MPI_COMM_WORLD, 1, board->comm_rank, &active_comm); //need to accessed by MASTER
 
+    MPI_Comm_rank(active_comm, &board->comm_rank);
+    MPI_Comm_size(active_comm, &board->comm_size);
+
+     g = malloc(board->n * board->n);
+    if(board->comm_rank == MASTER)
+    {
+        memcpy( (char *)g ,board->grid, board->n * board->n);
+
+    }
+
+    Board_Decompose(board, board->comm_rank, board->comm_size);
+
+    // if (board->comm_rank == MASTER)
+    //     memmove(board->grid, board->grid + board->cell_start, board->size[0] * board->size[1]);
+
+    MPI_Bcast(g, board->n * board->n, MPI_CHAR, MASTER, active_comm);
     memcpy(board->grid, (char *)g + board->cell_start, board->size[0] * board->size[1]);
 
     free((void *)g);
 
-    printf("process %d: received massages n=%d,t=%d,c=%d%%,M=%d\r\n",
-           board->world_rank, board->n, board->t, board->c, board->maxa);
+    printf("process %d: received massages n=%d, t=%d, c=%d%%, M=%d\r\n",
+           board->comm_rank, board->n, board->t, board->c, board->maxa);
+    /////
+    // printf("proces %d: ",board->comm_rank);
+    // for (i = 0; i != board->size[0] * board->size[1]; i++)
+    // {
+    //     printf("%d ", *((char *)board->grid + i));
+    // }
+    // printf("\r\n");
+    //////
 
     return 0;
 }
@@ -354,7 +383,9 @@ void Board_index(Board_Type *board)
 char Board_Sequantial(Board_Type *board)
 {
     unsigned int i;
+    
     Board_index(board); //input 4 user defined parameters
+
 
     Board_Decompose(board, MASTER, 1);
 
@@ -371,8 +402,8 @@ char Board_Sequantial(Board_Type *board)
         {
             printf("terminal condition is met! \r\n");
             for (i = 0; i != board->nott; i++)
-                printf("After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n",board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
-                                                                                                                                                   : "Red and Blue",
+                printf("After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
+                                                                                                                                                                                         : "Red and Blue",
                        (*board->terc) == BOTH ? "are" : "is", board->c, *(board->tert + 2 * i), *(board->tert + 2 * i + 1));
             return 0;
         }
@@ -397,16 +428,16 @@ char Board_Parellel(Board_Type *board)
 
         if (board->nott != 0)
         {
-            printf("process %d: terminal condition is met! \r\n", board->world_rank);
+            printf("process %d: terminal condition is met! \r\n", board->comm_rank);
             for (i = 0; i != board->nott; i++)
-                printf("process %d: After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", board->world_rank, board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
+                printf("process %d: After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", board->comm_rank, board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
                                                                                                                                                                                                                        : "Red and Blue",
                        (*board->terc) == BOTH ? "are" : "is", board->c, *(board->tert + 2 * i), *(board->tert + 2 * i + 1));
             stop = 1;
-            MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, MPI_COMM_WORLD);
+            MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, active_comm);
             return 1;
         }
-        MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, MPI_COMM_WORLD);
+        MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, active_comm);
 
         if (rec == 1)
             return 1;

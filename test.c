@@ -7,10 +7,10 @@ int main(int argc, char **argv)
     Board_Struct_Init(&board_s);
     Board_Struct_Init(&board_p);
     MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &board_s.world_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &board_s.world_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &board_s.comm_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &board_s.comm_size);
     board_p = board_s;
-    if (board_s.world_rank == MASTER)
+    if (board_s.comm_rank == MASTER)
     {
         //Board_index(&board_s);
 
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
         board_p = board_s;
 
-        Board_Decompose(&board_p, MASTER, board_p.world_size);
+        Board_Decompose(&board_p, MASTER, board_p.comm_size);
         
         memcpy(board_p.grid, board_s.grid + board_p.cell_start, board_p.size[0] * board_p.size[1]);
     
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
         }
     }
     printf("process %d ,begin at tile(%d,%d), cell %d ,control %d * %d tile, %d * %d cells\r\n",
-           board_p.world_rank, board_p.tile_start[0], board_p.tile_start[1], board_p.cell_start, board_p.tile[0], board_p.tile[1], board_p.size[0], board_p.size[1]);
+           board_p.comm_rank, board_p.tile_start[0], board_p.tile_start[1], board_p.cell_start, board_p.tile[0], board_p.tile[1], board_p.size[0], board_p.size[1]);
 
     Board_Parellel(&board_p);
 

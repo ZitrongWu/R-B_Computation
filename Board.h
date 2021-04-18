@@ -20,8 +20,8 @@ typedef struct
     unsigned int t;     //number of tile in one dimension 
     unsigned int maxa;    //maximum number of interactions        
 
-    int world_rank;
-    int world_size;
+    int comm_rank;
+    int comm_size;
 
     unsigned int size[2];       //size of cell [n.row n.column]
     unsigned int tile[2] ;    //size of tile [n.row n.column]  
