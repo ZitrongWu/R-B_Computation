@@ -55,4 +55,5 @@ char Board_Sch_Slave(Board_Type* board);
 void Board_index(Board_Type *board);
 char Board_Sequantial(Board_Type *board);
 char Board_Parellel(Board_Type *board);
+char Self_Check(Board_Type *board_l, Board_Type *board_std);
 #endif

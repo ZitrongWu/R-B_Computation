@@ -215,40 +215,34 @@ void Board_Struct_Finalize(Board_Type *board)
     board->grid = NULL; //pointer to the satrt address of the board
 }
 
-char Self_Check(Board_Type *b1, Board_Type *b2)
+char Self_Check(Board_Type *board_l, Board_Type *board_std)
 {
     unsigned int i;
-    if (b1->bsz != b2->bsz)
+    char local_sum = 0;
+    char remote_sum = 0;
+
+    for (i = 0; i != board_l->nott; i++)
     {
-        printf("The size of board dose not match!\r\n");
-        return 1;
+        local_sum += (char)(*(board_l->tert + i * 2) + *(board_l->tert + i * 2 + 1) +1) * *(board_l->terc + i); //coordinate of terminated tile * the color
     }
-    for (i = 0; i != b1->bsz; i++)
+
+    MPI_Reduce(&local_sum, &remote_sum, 1, MPI_CHAR, MPI_SUM, MASTER, MPI_COMM_WORLD);
+
+    if (board_l->world_rank == MASTER)
     {
-        if (*(b1->grid + i) != *(b2->grid + i))
+
+        printf("Conducting self-checking...\r\n");
+        local_sum = 0;
+        for (i = 0; i != board_std->nott; i++)
         {
-            printf("The grid dose not match!\r\n");
-            return 1;
+            local_sum += (char)(*(board_std->tert + i * 2) + *(board_std->tert + i * 2 + 1) + 1) * *(board_std->terc + i); //coordinate of terminated tile * the color
         }
+        if (local_sum == remote_sum)
+            printf("Self-checking complete, all results match!\r\n");
+        else
+            printf("Self-checking complete, ruslts did not match!\r\n");
     }
-    if (b1->nott != b2->nott)
-    {
-        printf("The terminated tiles dose not match!\r\n");
-        return 1;
-    }
-    for (i = 0; i != b1->nott; i++)
-    {
-        if (*(b1->tert + i * 2) != *(b2->tert + i * 2) || *(b1->tert + i * 2 + 1) != *(b2->tert + i * 2 + 1))
-        {
-            printf("The coordinate of terminated tiles dose not match!\r\n");
-            return 1;
-        }
-        if (*(b1->terc + i) != *(b2->terc + i))
-        {
-            printf("The color of terminated tiles dose not match!\r\n");
-            return 1;
-        }
-    }
+
     return 0;
 }
 
@@ -317,7 +311,7 @@ char Board_Sch_Slave(Board_Type *board)
 
     free((void *)g);
 
-    printf("process %d received massages n=%d,t=%d,c=%d%%,M=%d\r\n",
+    printf("process %d: received massages n=%d,t=%d,c=%d%%,M=%d\r\n",
            board->world_rank, board->n, board->t, board->c, board->maxa);
 
     return 0;
@@ -325,12 +319,12 @@ char Board_Sch_Slave(Board_Type *board)
 
 void Board_index(Board_Type *board)
 {
-    printf("Number of rows(n) in the board:\r\n");
+    printf("Number of rows(n) in the board n:\r\n");
     scanf("%d", &board->n);
 
     while (1)
     {
-        printf("Number of taills(t) in a dimension:\r\n");
+        printf("Number of taills(t) in a dimension t:\r\n");
         scanf("%d", &board->t);
         if (board->t <= board->n)
             break;
@@ -353,12 +347,18 @@ void Board_index(Board_Type *board)
 
     board->npt = board->n / board->t;
     board->ths = board->npt * board->npt * board->c * 0.01;
+
+    printf("\r\n n=%d,t=%d,c=%d%%,M=%d\r\n", board->n, board->t, board->c, board->maxa);
 }
 
 char Board_Sequantial(Board_Type *board)
 {
     unsigned int i;
+    Board_index(board); //input 4 user defined parameters
 
+    Board_Decompose(board, MASTER, 1);
+
+    Board_Grid_Init(board);
     board->nott = 0;
     for (board->counter = 0; board->counter != board->maxa + 1; board->counter++)
     {
@@ -371,7 +371,7 @@ char Board_Sequantial(Board_Type *board)
         {
             printf("terminal condition is met! \r\n");
             for (i = 0; i != board->nott; i++)
-                printf("the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
+                printf("After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n",board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
                                                                                                                                                    : "Red and Blue",
                        (*board->terc) == BOTH ? "are" : "is", board->c, *(board->tert + 2 * i), *(board->tert + 2 * i + 1));
             return 0;
@@ -397,19 +397,19 @@ char Board_Parellel(Board_Type *board)
 
         if (board->nott != 0)
         {
-            printf("process%d: terminal condition is met! \r\n", board->world_rank);
+            printf("process %d: terminal condition is met! \r\n", board->world_rank);
             for (i = 0; i != board->nott; i++)
-                printf("process%d: After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", board->world_rank, board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
+                printf("process %d: After %d interactions the number of %s cells %s more than %d%% cells in tile(%d,%d)\r\n", board->world_rank, board->counter, (*board->terc) == RED ? "Red" : (*board->terc) == BLUE ? "Blue"
                                                                                                                                                                                                                        : "Red and Blue",
                        (*board->terc) == BOTH ? "are" : "is", board->c, *(board->tert + 2 * i), *(board->tert + 2 * i + 1));
             stop = 1;
             MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, MPI_COMM_WORLD);
-            return 0;
+            return 1;
         }
         MPI_Allreduce(&stop, &rec, 1, MPI_CHAR, MPI_LOR, MPI_COMM_WORLD);
 
         if (rec == 1)
-            return 0;
+            return 1;
         Board_Move_Red(board);
         Board_Move_Blue(board);
     }
