@@ -157,9 +157,6 @@ char Board_Is_Sotp(Board_Type *board)
                 }
             }
 
-            board->comm_rank,rcout,bcount,
-            i + board->tile_start[0],
-            j + board->tile_start[1]);
             *(board->terc + board->nott) = 0;
 
             if (rcout >= board->ths)
