@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "random": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "type_traits": "c",
+        "rw_lock.h": "c",
+        "addressing.h": "c",
+        "algorithm": "c",
+        "new": "c",
+        "barrier.h": "c"
+    }
+}

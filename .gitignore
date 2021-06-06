@@ -53,3 +53,22 @@ dkms.conf
 
 # dSYM files
 .dSYM
+
+#latex
+*.bbl
+*.aux
+*.gz
+*.log
+*.blg
+*.synctex
+*.bcf
+*.out
+*.xml
+*.toc
+*.synctex(busy)
+*.fdv_latexmk
+*.fls
+*.xdv
+
+#pdf
+Red_blue_computation.pdf
